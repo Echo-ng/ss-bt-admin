@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.echostack.project.dao.SysPropertyMapper">
+    <resultMap id="sysPropertyResult" type="SysProperty">
+        <id property="id" column="id"/>
+        <result property="gmtCreate" column="gmt_create" javaType="java.util.Date"/>
+        <result property="gmtModified" column="gmt_modified" javaType="java.util.Date"/>
+        <result property="isEnabled" column="is_enabled"/>
+        <result property="propertyId" column="property_id"/>
+        <result property="propertyValue" column="property_value"/>
+    </resultMap>
+    
+    <sql id="sysPropertyColumns">
+        id,
+        gmt_create,
+        gmt_modified,
+        is_enabled,
+        property_id,
+        property_value,
+        name
+    </sql>
+    
+    <select id="get" resultMap="sysPropertyResult">
+        select
+        <include refid="sysPropertyColumns"></include>
+        from t_property
+        where id = #{id}
+    </select>
+
+    <select id="findByPropId" resultMap="sysPropertyResult">
+        select
+        <include refid="sysPropertyColumns"></include>
+        from t_property
+        where property_id = #{propertyId}
+    </select>
+
+    <select id="findAll" resultMap="sysPropertyResult">
+        select
+        <include refid="sysPropertyColumns"></include>
+        from t_property
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id" parameterType="com.echostack.project.model.entity.SysProperty">
+      insert into t_property (gmt_create,gmt_modified,property_id,property_value,is_enabled,name)
+      values (#{gmtCreate},#{gmtModified},#{propertyId},#{propertyValue},#{isEnabled},#{name})
+    </insert>
+
+    <delete id="deleteById">
+        delete from t_property where id = #{id}
+    </delete>
+
+    <update id="update">
+        update t_property set
+          property_value = #{propertyValue},
+          is_enabled = #{isEnabled},
+          gmt_modified = #{gmtModified},
+          name = #{name}
+        where id = #{id}
+    </update>
+</mapper>

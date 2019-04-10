@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.echostack.project.dao.SysDictValueMapper">
+    <resultMap id="dictValueResult" type="SysDictValue">
+        <id property="id" column="id"/>
+        <result property="gmtCreate" column="gmt_create" javaType="java.util.Date"/>
+        <result property="gmtModified" column="gmt_modified" javaType="java.util.Date"/>
+        <result property="isEnabled" column="is_enabled"/>
+        <result property="name" column="name"/>
+        <result property="code" column="code"/>
+        <result property="description" column="description"/>
+        <result property="dictId" column="dict_id"/>
+    </resultMap>
+    <sql id="dictValueSelect">
+        ${dictValueAlias}.id,
+        ${dictValueAlias}.gmt_create,
+        ${dictValueAlias}.gmt_modified,
+        ${dictValueAlias}.is_enabled,
+        ${dictValueAlias}.description,
+        ${dictValueAlias}.name,
+        ${dictValueAlias}.code,
+        ${dictValueAlias}.dictId
+    </sql>
+
+    <select id="get" resultMap="dictValueResult">
+        SELECT
+        <include refid="dictValueSelect">
+            <property name="dictValueAlias" value="t"/>
+        </include>
+        from t_dict_value t
+        where t.id = #{id}
+    </select>
+
+    <select id="findByCode" resultMap="dictValueResult">
+        select
+        <include refid="dictValueSelect">
+            <property name="dictValueAlias" value="t"/>
+        </include>
+        from t_dict_value d
+        left outer join t_dict_value t
+        where d.id = t.dict_id
+        and d.code = #{dictCode}
+        and t.code = #{valueCode}
+    </select>
+
+    <select id="findByDictId" resultMap="dictValueResult">
+        select
+        <include refid="dictValueSelect">
+            <property name="dictValueAlias" value="t"/>
+        </include>
+        from t_dict_value t
+        where d.code = #{dictId}
+    </select>
+
+    <select id="findAll" resultMap="dictValueResult">
+        select
+        <include refid="dictValueSelect">
+            <property name="dictValueAlias" value="t"/>
+        </include>
+        from t_dict_value t
+    </select>
+
+    <insert id="add"
+            useGeneratedKeys="true"
+            keyProperty="id"
+            parameterType="SysDictValue" />
+    <insert id="addByBatch" useGeneratedKeys="true" keyProperty="id" parameterType="java.util.List">
+        insert into t_dict_value (name,code,description,is_enabled,gmt_create,gmt_modified,dict_id)
+          values
+        <foreach item="item" collection="list" separator=",">
+            (#{item.name}, #{item.code}, #{item.description}, #{item.isEnabled},#{item.gmtCreate},#{item.gmtModified},#{item.dictId})
+        </foreach>
+    </insert>
+
+    <delete id="deleteById">
+        delete from t_dict_value where id = #{id}
+    </delete>
+
+    <delete id="deleteByDictId">
+        delete from t_dict_value where dict_id = #{dictId}
+    </delete>
+
+    <update id="update">
+        update t_dict_value set
+          name = #{name},
+          code = #{code},
+          description = #{description},
+          is_enabled = #{isEnabled},
+          gmt_modified = #{gmtModified},
+          dict_id = #{dictId}
+        where id = #{id}
+    </update>
+</mapper>

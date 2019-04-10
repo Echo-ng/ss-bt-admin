@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.apache.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.echostack.project.dao.SysUserMapper">
+    <sql id="selectUser">
+        SELECT
+            u.id,
+            u.username,
+            u.`password`,
+            u.email,
+            u.mobile,
+            u.sex,
+            u.gmt_create,
+            u.gmt_modified,
+            u.description,
+            u.head_img,
+            u.country,
+            u.city,
+            u.province,
+            u.address,
+            u.nick_name,
+            u.is_account_non_expired,
+            u.is_account_non_locked,
+            u.is_credentials_non_expired,
+            u.is_enabled,
+            r.id role_id,
+            r.NAME role_name
+        FROM
+            t_user u
+            LEFT OUTER JOIN t_role_user ru ON u.id = ru.user_id
+            LEFT OUTER JOIN t_role r ON ru.role_id = r.id
+    </sql>
+    <resultMap id="userResult" type="SysUser">
+        <id property="id" column="id" />
+        <result property="username" column="username" />
+        <result property="password" column="password" />
+        <result property="email" column="email" />
+        <result property="mobile" column="mobile" />
+        <result property="sex" column="sex" />
+        <result property="gmtCreate" column="gmt_create" javaType="java.util.Date" />
+        <result property="gmtModified" column="gmt_modified" javaType="java.util.Date" />
+        <result property="description" column="description" />
+        <result property="headImg" column="head_img" />
+        <result property="country" column="country" />
+        <result property="city" column="city" />
+        <result property="province" column="province" />
+        <result property="address" column="address" />
+        <result property="nickName" column="nick_name" />
+        <result property="status" column="status" />
+        <result property="isAccountNonExpired" column="is_account_non_expired" />
+        <result property="isAccountNonLocked" column="is_account_non_locked" />
+        <result property="isCredentialsNonExpired" column="is_credentials_non_expired" />
+        <result property="isEnabled" column="is_enabled" />
+        <collection property="sysRoles" ofType="SysRole">
+            <id property="id" column="role_id" />
+            <result property="name" column="role_name" />
+        </collection>
+    </resultMap>
+
+    <select id="findByUsername" resultMap="userResult">
+        SELECT
+            u.id,
+            u.username,
+            u.`password`,
+            u.email,
+            u.mobile,
+            u.sex,
+            u.gmt_create,
+            u.gmt_modified,
+            u.description,
+            u.head_img,
+            u.country,
+            u.city,
+            u.province,
+            u.address,
+            u.nick_name,
+            u.is_account_non_expired,
+            u.is_account_non_locked,
+            u.is_credentials_non_expired,
+            u.is_enabled,
+            r.id role_id,
+            r.NAME role_name
+        FROM
+            t_user u
+            LEFT OUTER JOIN t_role_user ru ON u.id = ru.user_id
+            LEFT OUTER JOIN t_role r ON ru.role_id = r.id
+        WHERE
+            u.username = #{username}
+    </select>
+
+    <select id="findByMobile" resultMap="userResult">
+        <include refid="selectUser" />
+        where mobile = #{mobile}
+    </select>
+
+    <select id="findByEmail" resultMap="userResult">
+        <include refid="selectUser" />
+        where email = #{email}
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id" parameterType="com.echostack.project.model.entity.SysUser" />
+
+    <delete id="deleteById">
+        delete from t_user where id = #{id}
+    </delete>
+
+    <update id="update" parameterType="com.echostack.project.model.entity.SysUser" />
+
+    <select id="findAll" resultMap="userResult">
+        <include refid="selectUser" />
+    </select>
+</mapper>

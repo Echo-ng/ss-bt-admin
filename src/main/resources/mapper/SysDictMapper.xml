@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.echostack.project.dao.SysDictMapper">
+    <sql id="dictSelect">
+        ${dictAlias}.id,
+        ${dictAlias}.gmt_create,
+        ${dictAlias}.gmt_modified,
+        ${dictAlias}.is_enabled,
+        ${dictAlias}.description,
+        ${dictAlias}.name,
+        ${dictAlias}.code,
+        ${dictValueAlias}.id value_id,
+        ${dictValueAlias}.code value_code,
+        ${dictValueAlias}.description value_description,
+        ${dictValueAlias}.gmt_create value_gmt_create,
+        ${dictValueAlias}.gmt_modified value_gmt_modified,
+        ${dictValueAlias}.is_enabled value_is_enabled,
+        ${dictValueAlias}.name value_name,
+        ${dictValueAlias}.dict_id value_dict_id
+    </sql>
+    
+    <resultMap id="dictResult" type="SysDict">
+        <id property="id" column="id" />
+        <result property="gmtCreate" column="gmt_create" javaType="java.util.Date" />
+        <result property="gmtModified" column="gmt_modified" javaType="java.util.Date" />
+        <result property="isEnabled" column="is_enabled" />
+        <result property="name" column="name" />
+        <result property="code" column="code" />
+        <result property="description" column="description" />
+        <collection property="dictValues" ofType="SysDictValue">
+            <id property="id" column="value_id" />
+            <result property="name" column="value_name" />
+            <result property="code" column="value_code" />
+            <result property="description" column="value_description" />
+            <result property="gmtCreate" column="value_gmt_create" javaType="java.util.Date" />
+            <result property="gmtModified" column="value_gmt_modified" javaType="java.util.Date" />
+            <result property="isEnabled" column="value_is_enabled" />
+            <result property="dictId" column="value_dict_id" />
+        </collection>
+    </resultMap>
+
+    <select id="findByCode" resultMap="dictResult">
+        SELECT
+            <include refid="dictSelect">
+                <property name="dictAlias" value="t"/>
+                <property name="dictValueAlias" value="dv"/>
+            </include>
+        FROM
+            t_dict t
+            LEFT OUTER JOIN t_dict_value dv ON t.id = dv.dict_id
+        WHERE
+            t.code = #{code}
+    </select>
+
+    <select id="get" resultMap="dictResult">
+        SELECT
+        <include refid="dictSelect">
+            <property name="dictAlias" value="t"/>
+            <property name="dictValueAlias" value="dv"/>
+        </include>
+        FROM
+        t_dict t
+        LEFT OUTER JOIN t_dict_value dv ON t.id = dv.dict_id
+        WHERE
+        t.id = #{id}
+    </select>
+
+    <insert id="add"
+            useGeneratedKeys="true"
+            parameterType="SysDict">
+        insert into t_dict (gmt_create,gmt_modified,is_enabled,name,code,description)
+        values (#{gmtCreate},#{gmtModified},#{isEnabled},#{name},#{code},#{description})
+    </insert>
+    
+    <update id="update">
+        update t_dict set
+          name = #{name},
+          code = #{code},
+          description = #{description},
+          is_enabled = #{isEnabled},
+          gmt_modified = #{gmtModified}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from t_dict where id = #{id}
+    </delete>
+
+    <select id="findAll" resultMap="dictResult">
+        SELECT
+        <include refid="dictSelect">
+            <property name="dictAlias" value="t"/>
+            <property name="dictValueAlias" value="dv"/>
+        </include>
+        FROM
+        t_dict t
+        LEFT OUTER JOIN t_dict_value dv ON t.id = dv.dict_id
+    </select>
+    
+    <select id="findByPaging" resultMap="dictResult">
+        SELECT
+        <include refid="dictSelect">
+            <property name="dictAlias" value="t"/>
+            <property name="dictValueAlias" value="dv"/>
+        </include>
+        FROM
+        t_dict t
+        LEFT OUTER JOIN t_dict_value dv ON t.id = dv.dict_id
+    </select>
+</mapper>
