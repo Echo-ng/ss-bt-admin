@@ -3,9 +3,11 @@ package com.echostack.project.config;
 import com.echostack.project.component.filter.BodyReaderFilter;
 import com.echostack.project.component.filter.JwtTokenFilter;
 import com.echostack.project.component.filter.JwtUserPasswordLoginFilter;
+import com.echostack.project.component.filter.SmsAuthenticationFilter;
 import com.echostack.project.component.handler.AppLogoutSuccessHandler;
 import com.echostack.project.component.handler.AuthFailureHandler;
 import com.echostack.project.component.handler.AuthSuccessHandler;
+import com.echostack.project.component.provider.SmsAuthenticationProvider;
 import com.echostack.project.infra.util.JwtTokenUtil;
 import com.echostack.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -14,13 +16,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 
@@ -38,22 +45,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     @Qualifier("userServiceImpl")
-    private UserDetailsService userDetailsService;
+    private UserService userService;
 
     @Autowired
-    AuthSuccessHandler authenticationSuccessHandler;
+    private AuthSuccessHandler authenticationSuccessHandler;
 
 
     @Autowired
-    AuthFailureHandler authenticationFailureHandler;
+    private AuthFailureHandler authenticationFailureHandler;
 
     @Autowired
-    AppLogoutSuccessHandler appLogoutSuccessHandler;
+    private AppLogoutSuccessHandler appLogoutSuccessHandler;
 
+    public SmsAuthenticationProvider smsAuthenticationProvider(){
+        SmsAuthenticationProvider smsAuthenticationProvider = new SmsAuthenticationProvider();
+        smsAuthenticationProvider.setUserService(userService);
+        return smsAuthenticationProvider;
+    }
 
 //    @Bean
     public JwtTokenFilter jwtTokenFilter(){
-        return new JwtTokenFilter(jwtTokenUtil, (UserService) userDetailsService);
+        return new JwtTokenFilter(jwtTokenUtil,  userService);
     }
 
 //    @Autowired
@@ -115,15 +127,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configureAuthentication(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
         authenticationManagerBuilder
                 // 设置UserDetailsService
-                .userDetailsService(userDetailsService)
+                .userDetailsService(userService)
                 // 使用BCrypt进行密码的hash
                 .passwordEncoder(passwordEncoder());
     }
 
+    @Autowired
+    private SmsAuthenticationConfig smsAuthenticationConfig;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests() //不拦截的请求地址
-                .antMatchers("/login","/signIn")
+                .antMatchers("/login","/signIn","/sms/code")
                 .permitAll()
 //                .antMatchers("/anonymous/**").hasRole("ANONYMOUS")
                 .anyRequest().authenticated()
@@ -150,7 +165,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .addFilter(jwtUserPasswordLoginFilter())
                 .addFilterBefore(bodyReaderFilter,UsernamePasswordAuthenticationFilter.class) //自定义过滤器
                 .addFilterAfter(jwtTokenFilter(),UsernamePasswordAuthenticationFilter.class)
-                .addFilterAt(jwtUserPasswordLoginFilter(),UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(jwtUserPasswordLoginFilter(),UsernamePasswordAuthenticationFilter.class)
+                .apply(smsAuthenticationConfig);
+    }
+
+    @Component
+    class SmsAuthenticationConfig extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
+
+        @Autowired
+        private AuthSuccessHandler authenticationSuccessHandler;
+
+        @Autowired
+        private AuthFailureHandler authenticationFailureHandler;
+
+        @Autowired
+        private UserService userService;
+
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            SmsAuthenticationFilter smsAuthenticationFilter = new SmsAuthenticationFilter();
+            smsAuthenticationFilter.setAuthenticationManager(http.getSharedObject(AuthenticationManager.class));
+            smsAuthenticationFilter.setJwtTokenUtil(jwtTokenUtil);
+            smsAuthenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
+            smsAuthenticationFilter.setAuthenticationFailureHandler(authenticationFailureHandler);
+
+            SmsAuthenticationProvider smsAuthenticationProvider = new SmsAuthenticationProvider();
+            smsAuthenticationProvider.setUserService(userService);
+
+            http.authenticationProvider(smsAuthenticationProvider)
+                    .addFilterBefore(smsAuthenticationFilter, JwtUserPasswordLoginFilter.class);
+
+        }
     }
 
 

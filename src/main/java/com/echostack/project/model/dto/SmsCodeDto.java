@@ -26,4 +26,8 @@ public class SmsCodeDto {
 
     public SmsCodeDto() {
     }
+
+    public boolean isExpire() {
+        return LocalDateTime.now().isAfter(expireTime);
+    }
 }

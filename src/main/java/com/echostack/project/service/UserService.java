@@ -9,6 +9,8 @@ public interface UserService extends UserDetailsService {
 
     SysUser findByUsername(String username);
 
+    SysUser loadUserByMobile(String mobile);
+
     SysUser add(SysUser sysUser);
 
     int deleteById(Long id);

@@ -12,5 +12,6 @@ public interface Application {
     String SMS_CODE_TEMPLATE_CODE = "sms.code.template.code";
     String SMS_CODE_SIGN_NAME = "sms.code.sign.name";
     String SESSION_KEY_SMS_CODE = "SESSION_KEY_SMS_CODE";
-
+    String LOGIN_TYPE_MOBILE_CODE = "1";
+    String LOGIN_TYPE_USERNAME_PASSWORD = "0";
 }

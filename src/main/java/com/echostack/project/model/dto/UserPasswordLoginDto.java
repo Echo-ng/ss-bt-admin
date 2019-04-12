@@ -13,6 +13,5 @@ import java.io.Serializable;
 public class UserPasswordLoginDto implements Serializable {
     private String username;
     private String password;
-    private String code;
     private Integer type;//0 用户名/手机号/邮箱+密码登录 1 手机号+验证码登录
 }

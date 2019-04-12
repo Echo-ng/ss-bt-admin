@@ -1,5 +1,7 @@
 package com.echostack.project.component.handler;
 
+import com.alibaba.fastjson.JSON;
+import com.echostack.project.infra.dto.ResultGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,8 +22,12 @@ public class AuthFailureHandler implements AuthenticationFailureHandler {
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
+//        httpServletResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+//        httpServletResponse.setContentType("application/json;charset=utf-8");
+//        httpServletResponse.getWriter().write(mapper.writeValueAsString(e.getMessage()));
+
         httpServletResponse.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
         httpServletResponse.setContentType("application/json;charset=utf-8");
-        httpServletResponse.getWriter().write(mapper.writeValueAsString(e.getMessage()));
+        httpServletResponse.getWriter().write(JSON.toJSONString(ResultGenerator.genFailResult(e.getMessage())));
     }
 }

@@ -17,21 +17,25 @@ public class SmsAuthenticationToken extends AbstractAuthenticationToken {
 
     private final Object principal;
 
-    public SmsAuthenticationToken(String mobile) {
+    private Object credentials;
+
+    public SmsAuthenticationToken(String mobile,String code) {
         super(null);
         this.principal = mobile;
+        this.credentials = code;
         setAuthenticated(false);
     }
 
-    public SmsAuthenticationToken(Object principal, Collection<? extends GrantedAuthority> authorities) {
+    public SmsAuthenticationToken(Object principal,Object credentials, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
+        this.credentials = credentials;
         super.setAuthenticated(true); // must use super, as we override
     }
 
     @Override
     public Object getCredentials() {
-        return null;
+        return this.credentials;
     }
 
     public Object getPrincipal() {

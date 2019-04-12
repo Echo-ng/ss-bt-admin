@@ -1,8 +1,15 @@
 package com.echostack.project.component.filter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.echostack.project.infra.constant.Application;
+import com.echostack.project.infra.exception.ValidateCodeException;
 import com.echostack.project.infra.util.JwtTokenUtil;
+import com.echostack.project.infra.util.WebUtil;
+import com.echostack.project.model.dto.SmsCodeDto;
+import com.echostack.project.model.dto.UserPasswordLoginDto;
 import com.echostack.project.service.UserService;
+import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,7 +19,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.social.connect.web.HttpSessionSessionStrategy;
+import org.springframework.social.connect.web.SessionStrategy;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -34,6 +44,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 //    @Autowired
     private UserService userService;
 
+    private SessionStrategy sessionStrategy;
+
     private SecurityContextLogoutHandler securityContextLogoutHandler = new SecurityContextLogoutHandler();
 
 
@@ -44,6 +56,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     public JwtTokenFilter(JwtTokenUtil jwtTokenUtil, UserService userService) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
+        this.sessionStrategy =  new HttpSessionSessionStrategy();
     }
 
     @Override
@@ -55,13 +68,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String username = jwtTokenUtil.parseToken(authToken).get("username").asString();
             if(jwtTokenUtil.listOnline(username).contains(authToken)) {
                 if (username != null && (SecurityContextHolder.getContext().getAuthentication() == null || SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals("anonymousUser"))) {
-                    UserDetails userDetails = userService.loadUserByUsername(username);
                     try{
                         jwtTokenUtil.validate(authToken);
+                        UserDetails userDetails = userService.loadUserByUsername(username);;
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                    }catch (JWTVerificationException e) {
+                    }catch (Exception e) {
 //                    ServletUtil.responseWriter(httpServletResponse,ResultGenerator.genFailResult(e.getMessage()));
                         httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED,e.getMessage());
                     }

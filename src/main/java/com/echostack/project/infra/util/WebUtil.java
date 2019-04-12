@@ -37,6 +37,21 @@ public class WebUtil {
         return result;
     }
 
+    public static <T> T getParamByJsonRequest(HttpServletRequest httpServletRequest,Class<T> tClass) throws IOException, IllegalAccessException, InstantiationException {
+        T instance = tClass.newInstance();
+        BodyReaderHttpServletRequestWrapper requestWrapper = new BodyReaderHttpServletRequestWrapper(httpServletRequest);
+        //从json中获取username和password
+        String body = null;
+        String result =  "";
+        try {
+            body = StreamUtils.copyToString(requestWrapper.getInputStream(), Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        instance = JSON.parseObject(body,tClass);
+        return instance;
+    }
+
     public static String createCode(Integer length,String source){
         Random rand = new Random();
         StringBuffer flag = new StringBuffer();

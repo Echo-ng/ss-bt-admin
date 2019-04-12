@@ -2,7 +2,10 @@ package com.echostack.project.component.filter;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.echostack.project.component.matcher.LoginTypeRequestMatcher;
+import com.echostack.project.component.token.SmsAuthenticationToken;
 import com.echostack.project.component.wapper.BodyReaderHttpServletRequestWrapper;
+import com.echostack.project.infra.constant.Application;
 import com.echostack.project.infra.dto.ResultGenerator;
 import com.echostack.project.infra.util.JwtTokenUtil;
 import com.echostack.project.model.dto.LoginResponseDto;
@@ -36,12 +39,12 @@ public class JwtUserPasswordLoginFilter extends AbstractAuthenticationProcessing
 //    private RememberMeServices rememberMeServices;
 
     public JwtUserPasswordLoginFilter(AuthenticationManager authenticationManager) {
-        super(new AntPathRequestMatcher("/signIn", "POST"));
+        super(new LoginTypeRequestMatcher("/signIn", "POST",Integer.parseInt(Application.LOGIN_TYPE_USERNAME_PASSWORD)));
         this.setAuthenticationManager(authenticationManager);
     }
 
     public JwtUserPasswordLoginFilter(){
-        super(new AntPathRequestMatcher("/signIn", "POST"));
+        super(new LoginTypeRequestMatcher("/signIn", "POST",Integer.parseInt(Application.LOGIN_TYPE_USERNAME_PASSWORD)));
 
     }
 
@@ -69,8 +72,10 @@ public class JwtUserPasswordLoginFilter extends AbstractAuthenticationProcessing
             dto.setPassword("");
         }
         //封装到token中提交
-        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-                dto.getUsername(), dto.getPassword());
+        Authentication authRequest = null;
+        if(dto.getType().equals(Integer.parseInt(Application.LOGIN_TYPE_USERNAME_PASSWORD))){
+            authRequest = new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword());
+        }
         return this.getAuthenticationManager().authenticate(authRequest);
     }
 

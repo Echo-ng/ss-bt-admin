@@ -40,34 +40,73 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
-        SysUser sysUser = sysUserMapper.findByUsername(s);
-        if (sysUser == null) {
-            throw new UsernameNotFoundException("用户名不存在");
-        }
+//        SysUser sysUser = sysUserMapper.findByUsername(s);
+//        if (sysUser == null) {
+//            throw new UsernameNotFoundException("用户名不存在");
+//        }
 //        else{
 //            sysUser.setPassword(passwordEncoder.encode(sysUser.getPassword()));
 //        }
-        return sysUser;
-    }
-
-    public SysUser findByUsername(String username){
         SysUser sysUser;
-        if(Strings.isNullOrEmpty(username)){
+        if(Strings.isNullOrEmpty(s)){
             throw new ServiceException("username不能为空");
         }else{
             Pattern p = Pattern.compile(Security.REGEX_EMAIl);
-            Matcher m = p.matcher(username);
+            Matcher m = p.matcher(s);
             if(m.matches()){
-                sysUser = sysUserMapper.findByEmail(username);
+                sysUser = sysUserMapper.findByEmail(s);
             }else{
                 p = Pattern.compile(Security.REGEX_MOBILE);
-                m = p.matcher(username);
+                m = p.matcher(s);
                 if(m.matches()){
-                    sysUser = sysUserMapper.findByMobile(username);
+                    sysUser = sysUserMapper.findByMobile(s);
                 }else{
-                    sysUser = sysUserMapper.findByUsername(username);
+                    sysUser = sysUserMapper.findByUsername(s);
                 }
             }
+        }
+        if (sysUser == null) {
+            throw new UsernameNotFoundException("用户名不存在");
+        }
+        return sysUser;
+    }
+
+
+
+    public SysUser findByUsername(String username){
+//        SysUser sysUser;
+//        if(Strings.isNullOrEmpty(username)){
+//            throw new ServiceException("username不能为空");
+//        }else{
+//            Pattern p = Pattern.compile(Security.REGEX_EMAIl);
+//            Matcher m = p.matcher(username);
+//            if(m.matches()){
+//                sysUser = sysUserMapper.findByEmail(username);
+//            }else{
+//                p = Pattern.compile(Security.REGEX_MOBILE);
+//                m = p.matcher(username);
+//                if(m.matches()){
+//                    sysUser = sysUserMapper.findByMobile(username);
+//                }else{
+//                    sysUser = sysUserMapper.findByUsername(username);
+//                }
+//            }
+//        }
+        return sysUserMapper.findByUsername(username);
+    }
+
+    @Override
+    public SysUser loadUserByMobile(String mobile) {
+        SysUser sysUser = new SysUser();
+        Pattern p = Pattern.compile(Security.REGEX_MOBILE);
+        Matcher m = p.matcher(mobile);
+        if(m.matches()){
+            sysUser = sysUserMapper.findByMobile(mobile);
+            if (sysUser == null) {
+                throw new UsernameNotFoundException("手机号不存在");
+            }
+        }else{
+            throw new ServiceException("手机格式不正确");
         }
         return sysUser;
     }

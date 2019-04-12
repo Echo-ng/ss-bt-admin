@@ -5,6 +5,7 @@ import com.echostack.project.infra.constant.Application;
 import com.echostack.project.infra.constant.Security;
 import com.echostack.project.infra.dto.Result;
 import com.echostack.project.infra.dto.ResultGenerator;
+import com.echostack.project.infra.util.IPUtil;
 import com.echostack.project.infra.util.WebUtil;
 import com.echostack.project.model.dto.SmsCodeDto;
 import com.echostack.project.service.SmsService;
@@ -14,6 +15,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.social.connect.web.HttpSessionSessionStrategy;
 import org.springframework.social.connect.web.SessionStrategy;
@@ -46,6 +48,9 @@ public class SmsController {
 
     private SessionStrategy sessionStrategy = new HttpSessionSessionStrategy();
 
+//    @Autowired
+//    private RedisTemplate redisTemplate;
+
     @GetMapping("/code")
     @Logger("发送短信验证码")
     @ApiOperation(value = "短信验证码", notes = "发送短信验证码给用户")
@@ -53,6 +58,7 @@ public class SmsController {
         Result result = ResultGenerator.genSuccessResult();
         //判断手机号格式是否规范
         Pattern p = Pattern.compile(Security.REGEX_MOBILE);
+
         Matcher m = p.matcher(mobile);
         if(m.matches()){
             //获取当前设置的验证码配置
@@ -62,7 +68,8 @@ public class SmsController {
             //生成验证码
             String code = WebUtil.createCode(Integer.parseInt(length),source);
             //存到会话中
-            sessionStrategy.setAttribute(new ServletWebRequest(request),Application.SESSION_KEY_SMS_CODE+mobile,new SmsCodeDto(code,Integer.parseInt(expire)));
+            SmsCodeDto codeDto = new SmsCodeDto(code,Integer.parseInt(expire));
+            sessionStrategy.setAttribute(new ServletWebRequest(request),Application.SESSION_KEY_SMS_CODE+mobile,codeDto);
             try {
                 smsService.sendSms(mobile,code);
             }catch (Exception e){
